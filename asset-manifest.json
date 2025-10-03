@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/naufalnajib/static/css/main.7e1c19bb.css",
+    "main.css": "/naufalnajib/static/css/main.c85f88fc.css",
     "main.js": "/naufalnajib/static/js/main.19fd598f.js",
     "index.html": "/naufalnajib/index.html",
-    "main.7e1c19bb.css.map": "/naufalnajib/static/css/main.7e1c19bb.css.map",
+    "main.c85f88fc.css.map": "/naufalnajib/static/css/main.c85f88fc.css.map",
     "main.19fd598f.js.map": "/naufalnajib/static/js/main.19fd598f.js.map"
   },
   "entrypoints": [
-    "static/css/main.7e1c19bb.css",
+    "static/css/main.c85f88fc.css",
     "static/js/main.19fd598f.js"
   ]
 }
