@@ -1,3 +1,8 @@
+html, #root {
+    /* Wajib: Memastikan React root dan HTML mengambil tinggi penuh viewport */
+    height: 100%; 
+}
+
 body {
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -5,6 +10,8 @@ body {
     background-size: 400% 400%;
     animation: gradientMove 15s ease infinite;
     color: #e0e0e0;
+    /* Wajib: Juga set tinggi penuh pada body */
+    min-height: 100vh;
 }
 
 @keyframes gradientMove {
@@ -14,6 +21,7 @@ body {
 }
 
 .app-frame {
+    /* Hapus min-height di sini */
     max-width: 1000px;
     margin: 40px auto;
     padding: 30px;
@@ -21,7 +29,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 6px 20px rgba(0, 191, 255, 0.2);
     position: relative;
-    min-height: 600px;
+    /* min-height: 600px; <--- DIHAPUS */
 }
 
 /* Judul halaman */
@@ -36,15 +44,12 @@ body {
 }
 
 /* Menu toggle */
-/* Menu toggle */
 .menu-wrapper {
     position: fixed;
     top: 20px;
     right: 30px;
     z-index: 999;
-    /* --- Tambahkan properti ini --- */
     white-space: nowrap; 
-    /* ------------------------------ */
 }
 
 .menu-toggle {
@@ -232,12 +237,7 @@ body {
     animation: fadeIn 0.6s ease;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px);}
-    to { opacity: 1; transform: translateY(0);}
-}
-
-/* --- CONTACT PAGE CUSTOM STYLES (Disesuaikan) --- */
+/* --- CONTACT PAGE CUSTOM STYLES --- */
 
 .contact-section h2 {
     color: #00bfff;
@@ -547,4 +547,8 @@ body {
     color: #ccc;
     text-align: center;
     border-top: 1px dashed #333;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px);}
+    to { opacity: 1; transform: translateY(0);}
 }
