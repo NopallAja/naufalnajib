@@ -1,9 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useParams } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import emailjs from '@emailjs/browser';
 import './App.css';
-
 // --- Data Dummy Proyek (TIDAK BERUBAH) ---
 const projectData = [
   { id: 1, title: "Autonomus Surface Vehicle", slug: "Autonomus Surface Vehicle", description: "Autonomus Survace Vehicle merupakan prototipe kapal yang saya kerjakan bersama team Safinah One, Gamantaray. Saya berperan dalam membuat logika jalan kapal secara otomatis menggunakan Pixhawk yang di program dengan python via pymavlink. Logika pemrograman yang saya buat melibatkan waypoint berupa latitude dan longitude yang di sebar di setiap titik lintasan sehingga kapal harus mengikuti. Logika yang saya tuangkan dalam program ini, mampu mengontrol kapal prototipe untuk mengikuti titik titik sehingga berhasil mengikuti jalur lintasan yang ditentukan. Selain itu pada kapal prototipe ini juga di bantu menggunakan camera vision sebagai deteksi objek yang di tentukan seperti box, bola, dan sebagainya untuk di potret maupun sebagai koreksi jalan kapal. Selain itu, kapal prototipe juga dilengkapi dengan mode kontrol manual yang diwajibkan ketika ingin mengikuti perlombaan demi keamanan dan kelancaran rescue kapal apabila terjadi trouble di tengah lintasan. Selain dengan pixhawk, saya juga mempelajari penggunaan mkrokontroller lain pada sesi sebelumnya, seperti menggunakan arduino, esp, hingga stm32. Namun deminkian, projek ini diputuskan menggunakan pixhwak yang lebih kompetibel dan lebih ringkas karena terdapat port dan sensor imu bawaan." },
