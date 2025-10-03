@@ -31,7 +31,11 @@ const photoData = Array.from({ length: 20 }, (_, i) => ({
     title: `Photo ${i + 1}`,
     // INI YANG HARUS DIGANTI:
     // Gunakan path publik, biasanya diawali dengan `/`
+<<<<<<< HEAD
     filename: `${process.env.PUBLIC_URL}/foto/foto-${i + 1}.jpg`,
+=======
+    filename: `${process.env.PUBLIC_URL}/foto/foto-${i + 1}.jpg`
+>>>>>>> f64489bb0376d120e9f926d2d92de920faad5ff0
     description: `Deskripsi singkat tentang momen ini. (Kata kunci: ${i % 3 === 0 ? 'Workshop' : i % 3 === 1 ? 'Kampus' : 'Liburan'}).`
 }));
 
