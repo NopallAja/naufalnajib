@@ -215,7 +215,7 @@ function Biografi() {
           whileHover={{ scale: 1.05, rotate: 1 }}
           transition={{ type: "spring", stiffness: 200 }}
         >
-          <img src="/image.png" alt="Foto Naufal Najib" />
+          <img src="image.png" alt="Foto Naufal Najib" />
         </motion.div>
         <motion.div
           className="about-section"
