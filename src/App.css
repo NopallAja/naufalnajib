@@ -1,6 +1,18 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { Menu, X, User, Briefcase, Code, Image, Mail } from 'lucide-react'; // Menggunakan lucide-react untuk ikon
+
+// Global variables provided by the Canvas environment
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+// --- CSS YANG ANDA BERIKAN, DIKEMAS DALAM STRING UNTUK INJEKSI ---
+const globalStyles = `
 html, #root {
-    /* Wajib: Memastikan React root dan HTML mengambil tinggi penuh viewport */
-    height: 100%; 
+    height: 100%;
 }
 
 body {
@@ -10,7 +22,6 @@ body {
     background-size: 400% 400%;
     animation: gradientMove 15s ease infinite;
     color: #e0e0e0;
-    /* Wajib: Juga set tinggi penuh pada body */
     min-height: 100vh;
 }
 
@@ -21,7 +32,6 @@ body {
 }
 
 .app-frame {
-    /* Hapus min-height di sini */
     max-width: 1000px;
     margin: 40px auto;
     padding: 30px;
@@ -29,10 +39,9 @@ body {
     border-radius: 12px;
     box-shadow: 0 6px 20px rgba(0, 191, 255, 0.2);
     position: relative;
-    /* min-height: 600px; <--- DIHAPUS */
+    /* min-height: 600px; - Dihapus sesuai saran terakhir */
 }
 
-/* Judul halaman */
 .page-title {
     font-size: 28px;
     color: #00bfff;
@@ -43,7 +52,6 @@ body {
     text-shadow: 0 0 8px #00bfff;
 }
 
-/* Menu toggle */
 .menu-wrapper {
     position: fixed;
     top: 20px;
@@ -65,7 +73,6 @@ body {
 
 .menu-toggle:hover {
     background-color: #008fcc;
-    /* transform: rotate(5deg); */
 }
 
 .top-menu {
@@ -94,7 +101,6 @@ body {
     transform: translateX(5px);
 }
 
-/* Biografi page layout */
 .top-section {
     display: flex;
     gap: 30px;
@@ -132,7 +138,6 @@ body {
     color: #ccc;
 }
 
-/* Introduction section (Digunakan juga untuk Contact Form) */
 .introduction-section {
     margin-top: 20px;
     background-color: #222;
@@ -141,7 +146,6 @@ body {
     box-shadow: 0 4px 12px rgb(0, 191, 255);
 }
 
-/* Skills section */
 .skills-section h2 {
     color: #00bfff;
     margin-bottom: 12px;
@@ -168,7 +172,6 @@ body {
     background-color: #00bfff;
 }
 
-/* Hobbies section */
 .hobbies-section {
     margin-top: 30px;
 }
@@ -192,7 +195,6 @@ body {
     transition: transform 0.3s;
 }
 
-/* Timeline section */
 .timeline-section {
     margin-top: 20px;
 }
@@ -221,7 +223,6 @@ body {
     color: #00bfff;
 }
 
-/* Quote section */
 .quote-section {
     margin-top: 20px;
     background-color: #222;
@@ -231,13 +232,15 @@ body {
     font-style: italic;
 }
 
-/* Content placeholder pages */
 .content {
     padding: 20px;
     animation: fadeIn 0.6s ease;
 }
 
-/* --- CONTACT PAGE CUSTOM STYLES --- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px);}
+    to { opacity: 1; transform: translateY(0);}
+}
 
 .contact-section h2 {
     color: #00bfff;
@@ -253,7 +256,7 @@ body {
     margin-bottom: 10px;
     background-color: #222;
     padding: 10px 15px;
-    border-left: 6px solid #00bfff; /* Meniru gaya timeline */
+    border-left: 6px solid #00bfff;
     border-radius: 6px;
     box-shadow: 0 2px 6px rgb(0, 191, 255);
     transition: transform 0.3s;
@@ -269,14 +272,13 @@ body {
 
 .contact-icon {
     font-size: 20px;
-    color: #00bfff; /* Warna ikon neon */
+    color: #00bfff;
 }
 
 .contact-name {
     font-weight: 600;
 }
 
-/* Contact Form Styles */
 .contact-form {
     margin-top: 15px;
 }
@@ -287,7 +289,7 @@ body {
     padding: 12px;
     margin-bottom: 15px;
     border: 1px solid #00bfff;
-    background-color: #1a1a1a; /* Latar belakang lebih gelap */
+    background-color: #1a1a1a;
     color: #e0e0e0;
     border-radius: 6px;
     box-sizing: border-box;
@@ -350,11 +352,8 @@ body {
     color: #aaa;
 }
 
-/* --- PROJECT PAGE STYLES --- */
-
 .project-list-grid {
     display: grid;
-    /* Membuat tata letak 2 kolom di layar besar */
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); 
     gap: 25px;
     margin-top: 30px;
@@ -364,7 +363,7 @@ body {
     background-color: #222;
     padding: 20px;
     border-radius: 12px;
-    border: 1px solid #00bfff; /* Border tipis neon */
+    border: 1px solid #00bfff;
     box-shadow: 0 4px 12px rgba(0, 191, 255, 0.2);
     transition: transform 0.3s, box-shadow 0.3s;
 }
@@ -385,7 +384,7 @@ body {
 
 .project-link {
     display: inline-block;
-    color: #00ffff; /* Warna lebih terang */
+    color: #00ffff;
     text-decoration: none;
     font-weight: 600;
     transition: color 0.3s;
@@ -396,10 +395,7 @@ body {
     text-decoration: underline;
 }
 
-/* Detail Project Page */
-.detail-projek-page {
-    /* Menggunakan gaya content yang sudah ada */
-}
+.detail-projek-page {}
 
 .back-link {
     display: inline-block;
@@ -449,12 +445,11 @@ body {
     width: 1em;
     margin-left: -1em;
 }
-/* --- EXPERIENCE PAGE STYLES --- */
 
 .experience-list {
     margin-top: 20px;
     display: flex;
-    flex-direction: column; /* Layout ke bawah semua */
+    flex-direction: column;
     gap: 15px;
 }
 
@@ -462,7 +457,7 @@ body {
     background-color: #222;
     padding: 20px;
     border-radius: 12px;
-    border-left: 6px solid #00bfff; /* Mirip Timeline/Contact Item */
+    border-left: 6px solid #00bfff;
     box-shadow: 0 4px 12px rgba(0, 191, 255, 0.2);
     transition: transform 0.3s;
 }
@@ -503,17 +498,10 @@ body {
     margin-bottom: 15px;
 }
 
-/* Detail Experience Page */
-.detail-organisasi-page {
-    /* Menggunakan gaya content yang sudah ada */
-}
-
-
-/* --- PHOTO GRID STYLES --- */
+.detail-organisasi-page {}
 
 .photo-grid {
     display: grid;
-    /* Grid 4 kolom di layar besar */
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
     gap: 20px;
     margin-top: 30px;
@@ -530,7 +518,7 @@ body {
 
 .photo-card img {
     width: 100%;
-    height: 150px; /* Tinggi foto yang seragam */
+    height: 150px;
     object-fit: cover;
     display: block;
     transition: transform 0.5s;
@@ -548,7 +536,324 @@ body {
     text-align: center;
     border-top: 1px dashed #333;
 }
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px);}
-    to { opacity: 1; transform: translateY(0);}
-}
+`;
+// --- AKHIR DARI CSS ---
+
+const navItems = [
+    { id: 'biografi', label: 'Biografi', icon: User },
+    { id: 'proyek', label: 'Proyek', icon: Code },
+    { id: 'pengalaman', label: 'Pengalaman', icon: Briefcase },
+    { id: 'galeri', label: 'Galeri', icon: Image },
+    { id: 'kontak', label: 'Kontak', icon: Mail },
+];
+
+// --- FUNGSI KOMPONEN UNTUK HALAMAN ---
+
+const BiografiPage = () => (
+    <div className="content">
+        <h1 className="page-title">Profil Saya: Developer Neon Dream</h1>
+        <div className="top-section">
+            <div className="photo-section">
+                {/* Menggunakan placeholder aman. Ganti dengan gambar Anda. */}
+                <img src="https://placehold.co/200x320/00bfff/121212?text=FOTO+ANDA" alt="Foto Profil" onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/200x320/00bfff/121212?text=FOTO"; }} />
+            </div>
+            <div className="about-section">
+                <h2>Tentang Saya</h2>
+                <p>Halo! Saya adalah seorang Developer Full-Stack dengan semangat untuk menciptakan aplikasi web yang responsif dan estetis. Saya percaya pada perpaduan antara fungsionalitas yang kuat dan desain yang memukau, terutama yang berkonsep *dark theme* dan *neon*.</p>
+                <p>Saya berfokus pada ekosistem JavaScript, mulai dari Node.js di sisi *backend* hingga React di *frontend*. Saya juga memiliki minat besar pada *Data Science* dan visualisasi data.</p>
+            </div>
+        </div>
+
+        <div className="introduction-section">
+            <p><strong>Status Auth: User ID: <span id="user-id">Loading...</span></strong> (Ini adalah ID Anda untuk penyimpanan data)</p>
+        </div>
+
+        <div className="skills-section introduction-section">
+            <h2>Keahlian Teknis</h2>
+            <div className="skill">
+                <span>React.js / Frontend Development</span>
+                <div className="progress-bar"><div style={{ width: '90%' }}></div></div>
+            </div>
+            <div className="skill">
+                <span>Node.js / Express.js (Backend)</span>
+                <div className="progress-bar"><div style={{ width: '85%' }}></div></div>
+            </div>
+            <div className="skill">
+                <span>Firestore / NoSQL Databases</span>
+                <div className="progress-bar"><div style={{ width: '80%' }}></div></div>
+            </div>
+            <div className="skill">
+                <span>Tailwind CSS / Styling Modern</span>
+                <div className="progress-bar"><div style={{ width: '95%' }}></div></div>
+            </div>
+        </div>
+
+        <div className="timeline-section">
+            <h2>Edukasi Singkat</h2>
+            <ul className="timeline">
+                <li><span>2018 - 2022</span> | Sarjana Teknik Informatika - Universitas Teknologi</li>
+                <li><span>2023 - Sekarang</span> | Spesialisasi Pengembangan Aplikasi Cloud - Google Training Program</li>
+            </ul>
+        </div>
+        
+        <div className="quote-section">
+            "Design is not just what it looks like and feels like. Design is how it works." - Steve Jobs
+        </div>
+    </div>
+);
+
+const ProjectPage = () => (
+    <div className="content">
+        <h1 className="page-title">Daftar Proyek Unggulan</h1>
+        <div className="project-list-grid">
+            {[1, 2, 3, 4].map(i => (
+                <div className="project-card" key={i}>
+                    <h3>Project Neon Chat App #{i}</h3>
+                    <p className="project-summary">Aplikasi chat real-time yang menggunakan Firestore dan React, menampilkan UI *neon dark mode* yang memukau.</p>
+                    <div className="technical-details">
+                        <h3>Teknologi</h3>
+                        <ul>
+                            <li>React Hooks & Context</li>
+                            <li>Firebase Firestore (Realtime)</li>
+                            <li>Tailwind CSS</li>
+                        </ul>
+                    </div>
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
+const ExperiencePage = () => (
+    <div className="content">
+        <h1 className="page-title">Pengalaman Kerja & Organisasi</h1>
+        <div className="experience-list">
+            <div className="experience-item">
+                <div className="experience-header">
+                    <h3>Senior Full-Stack Developer</h3>
+                    <span className="experience-period">2023 - Sekarang</span>
+                </div>
+                <p className="experience-org">Tech Solutions Global</p>
+                <p className="experience-role">Memimpin tim untuk mengembangkan dashboard analitik menggunakan React dan Node.js.</p>
+            </div>
+            <div className="experience-item">
+                <div className="experience-header">
+                    <h3>Junior Web Developer</h3>
+                    <span className="experience-period">2022 - 2023</span>
+                </div>
+                <p className="experience-org">Startup Kreatif Indonesia</p>
+                <p className="experience-role">Bertanggung jawab atas integrasi API dan maintenance situs e-commerce berbasis PHP dan JavaScript.</p>
+            </div>
+        </div>
+    </div>
+);
+
+const GalleryPage = () => (
+    <div className="content">
+        <h1 className="page-title">Galeri Foto Estetika Neon</h1>
+        <div className="photo-grid">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                <div className="photo-card" key={i}>
+                    <img src={`https://placehold.co/200x150/004f7f/cceeff?text=Foto+${i}`} alt={`Foto ${i}`} />
+                    <p className="photo-description">Deskripsi singkat tentang momen ini.</p>
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
+const ContactPage = () => {
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [message, setMessage] = useState('');
+    const [status, setStatus] = useState('');
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setStatus('Mengirim...');
+        
+        // Simulating API call success/failure
+        setTimeout(() => {
+            if (name && email && message) {
+                setStatus('Pesan berhasil dikirim! (Simulasi)');
+            } else {
+                setStatus('Pesan gagal dikirim. Harap isi semua kolom.');
+            }
+        }, 1500);
+    };
+
+    return (
+        <div className="content">
+            <h1 className="page-title">Hubungi Saya</h1>
+            <div className="contact-section introduction-section">
+                <h2>Informasi Kontak</h2>
+                <ul className="contact-list">
+                    <li className="contact-item">
+                        <a href="mailto:contact@devneon.com">
+                            <Mail className="contact-icon" size={20} />
+                            <span className="contact-name">Email: contact@devneon.com</span>
+                        </a>
+                    </li>
+                    <li className="contact-item">
+                        <a href="https://linkedin.com/in/yourprofile">
+                            <Briefcase className="contact-icon" size={20} />
+                            <span className="contact-name">LinkedIn: /in/yourprofile</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div className="contact-section introduction-section">
+                <h2>Kirim Pesan</h2>
+                <form className="contact-form" onSubmit={handleSubmit}>
+                    <input 
+                        type="text" 
+                        placeholder="Nama Anda" 
+                        value={name} 
+                        onChange={(e) => setName(e.target.value)} 
+                        required 
+                    />
+                    <input 
+                        type="email" 
+                        placeholder="Email Anda" 
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)} 
+                        required 
+                    />
+                    <textarea 
+                        placeholder="Pesan Anda" 
+                        rows="5" 
+                        value={message} 
+                        onChange={(e) => setMessage(e.target.value)} 
+                        required 
+                    ></textarea>
+                    <button type="submit" disabled={status === 'Mengirim...'}>
+                        {status === 'Mengirim...' ? 'Mengirim...' : 'Kirim Pesan'}
+                    </button>
+                    {status && status !== 'Mengirim...' && (
+                        <div className={`status-message ${status.includes('berhasil') ? 'success' : 'error'}`}>
+                            {status}
+                        </div>
+                    )}
+                </form>
+                <p className="email-note">
+                    *Formulir ini hanya simulasi. Ganti dengan fungsi pengiriman email yang sebenarnya.
+                </p>
+            </div>
+        </div>
+    );
+};
+
+
+// --- KOMPONEN UTAMA APLIKASI ---
+
+const App = () => {
+    const [activePage, setActivePage] = useState('biografi');
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [db, setDb] = useState(null);
+    const [auth, setAuth] = useState(null);
+    const [userId, setUserId] = useState(null);
+    const [isAuthReady, setIsAuthReady] = useState(false);
+
+    // 1. FIREBASE INITIALIZATION AND AUTHENTICATION
+    useEffect(() => {
+        try {
+            const firebaseApp = initializeApp(firebaseConfig);
+            const authInstance = getAuth(firebaseApp);
+            const dbInstance = getFirestore(firebaseApp);
+            
+            setDb(dbInstance);
+            setAuth(authInstance);
+
+            const unsubscribe = onAuthStateChanged(authInstance, async (user) => {
+                if (!user) {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(authInstance, initialAuthToken);
+                    } else {
+                        await signInAnonymously(authInstance);
+                    }
+                }
+                setUserId(authInstance.currentUser?.uid || 'anonymous');
+                setIsAuthReady(true);
+                console.log(`[Firebase] Auth ready. User ID: ${authInstance.currentUser?.uid || 'anonymous'}`);
+            });
+
+            return () => unsubscribe();
+        } catch (error) {
+            console.error("Failed to initialize Firebase:", error);
+            setIsAuthReady(true); // Allow UI to render even if Firebase fails
+        }
+    }, []);
+
+    useEffect(() => {
+        if (isAuthReady && userId) {
+            // Update the user ID display element
+            const userIdElement = document.getElementById('user-id');
+            if (userIdElement) {
+                userIdElement.textContent = userId;
+            }
+        }
+    }, [isAuthReady, userId]);
+
+    // Function to render the active page component
+    const renderPage = useCallback(() => {
+        switch (activePage) {
+            case 'biografi':
+                return <BiografiPage />;
+            case 'proyek':
+                return <ProjectPage />;
+            case 'pengalaman':
+                return <ExperiencePage />;
+            case 'galeri':
+                return <GalleryPage />;
+            case 'kontak':
+                return <ContactPage />;
+            default:
+                return <BiografiPage />;
+        }
+    }, [activePage]);
+    
+    // Handler for navigation
+    const handleNavigation = (pageId) => {
+        setActivePage(pageId);
+        setIsMenuOpen(false); // Close menu after navigation
+    };
+
+    return (
+        <>
+            {/* Inject CSS global */}
+            <style>{globalStyles}</style>
+
+            <div className="app-frame">
+                {renderPage()}
+            </div>
+
+            {/* Menu Navigasi (Fixed Position) */}
+            <div className="menu-wrapper">
+                <button className="menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                    {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+                {isMenuOpen && (
+                    <div className="top-menu">
+                        {navItems.map((item) => (
+                            <a 
+                                key={item.id}
+                                href="#" 
+                                onClick={(e) => { e.preventDefault(); handleNavigation(item.id); }}
+                                style={{
+                                    backgroundColor: activePage === item.id ? '#004f7f' : 'transparent',
+                                    color: activePage === item.id ? '#cceeff' : '#00bfff',
+                                }}
+                            >
+                                <item.icon size={16} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                                {item.label}
+                            </a>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </>
+    );
+};
+
+export default App;
