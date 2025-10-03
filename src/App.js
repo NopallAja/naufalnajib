@@ -32,7 +32,7 @@ const photoData = Array.from({ length: 20 }, (_, i) => ({
     title: `Photo ${i + 1}`,
     // INI YANG HARUS DIGANTI:
     // Gunakan path publik, biasanya diawali dengan `/`
-    filename: `/foto/foto-${i + 1}.jpg`, 
+    filename: `${process.env.PUBLIC_URL}/foto/foto-${i + 1}.jpg`
     description: `Deskripsi singkat tentang momen ini. (Kata kunci: ${i % 3 === 0 ? 'Workshop' : i % 3 === 1 ? 'Kampus' : 'Liburan'}).`
 }));
 
@@ -215,7 +215,7 @@ function Biografi() {
           whileHover={{ scale: 1.05, rotate: 1 }}
           transition={{ type: "spring", stiffness: 200 }}
         >
-          <img src="image.png" alt="Foto Naufal Najib" />
+          <img src={`${process.env.PUBLIC_URL}/image.png`} alt="Foto Naufal Najib" />
         </motion.div>
         <motion.div
           className="about-section"
